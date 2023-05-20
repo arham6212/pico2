@@ -1,4 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pico2/common/common_widgets.dart';
 import 'package:pico2/common/events.dart';
@@ -6,19 +10,15 @@ import 'package:pico2/controller/pallet_creation_controller.dart';
 import 'package:pico2/controller/search_controller.dart';
 import 'package:pico2/models/id_txt_model.dart';
 import 'package:pico2/models/pallet_items_model.dart';
-import 'package:pico2/screens/edit_screen.dart';
 import 'package:pico2/screens/search_screen.dart';
-import 'package:pico2/theme/colors.dart';
 import 'package:pico2/utils/constants.dart';
-import 'package:pico2/utils/utility.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:pico2/widgets/custom_app_bar.dart';
 
-import '../models/pallet_detail_model.dart';
+import '../widgets/drop_pallete_button.dart';
+import '../widgets/pallete_creation_bottom_widget.dart';
+import '../widgets/save_button.dart';
+import '../widgets/scan_pallet_code_button.dart';
+import '../widgets/search_homw_widget.dart';
 
 class PickingPalletReachTruckScreen extends StatefulWidget {
   const PickingPalletReachTruckScreen({Key? key}) : super(key: key);
@@ -105,20 +105,12 @@ class _PickingPalletReachTruckScreenState
     return SafeArea(
       child: GetBuilder<PalletCreationController>(builder: (_) {
         return Scaffold(
-          appBar: getCommonAppBar(
-            title: 'Glass',
-            action: MaterialButton(
-              color: kBlueColor,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              onPressed: () => onSave(),
-              child: Text(
-                index == 1 ? 'Update' : 'Save',
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
+          appBar: CustomAppBar(
+              title: Get.arguments['appBarTitle'] ?? "",
+              action: AnimatedButton(
+                index: index,
+                onSave: () => onSave(),
+              )),
           body: palletCreationController.palletCreationModel == null
               ? Center(
                   child: LoadingAnimationWidget.bouncingBall(
@@ -132,7 +124,8 @@ class _PickingPalletReachTruckScreenState
                       const SizedBox(height: 20),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: InkWell(
+                        child: SearchHomeWidget(
+                          textController: warehouseController,
                           onTap: () async {
                             warehouseData = await Get.to(() => SearchScreen(
                                   data: warehouseList,
@@ -142,24 +135,7 @@ class _PickingPalletReachTruckScreenState
                               warehouseController.text = warehouseData.name;
                             }
                           },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 0, horizontal: 8),
-                                fillColor: Colors.white,
-                                filled: true,
-                                hintText: 'Search Warehouse',
-                                hintStyle: const TextStyle(
-                                    fontWeight: FontWeight.normal),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              controller: warehouseController,
-                              style: Get.textTheme.bodyText2
-                                  ?.copyWith(color: Colors.black),
-                            ),
-                          ),
+                          label: 'Search Warehouse',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -167,128 +143,61 @@ class _PickingPalletReachTruckScreenState
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Row(
                           children: [
-                           Expanded(
-                                    child: InkWell(
-                                      onTap: () async {
-                                        palletData = await Get.to(
-                                          () => SearchScreen(
-                                            data: palletCreationController
-                                                    .palletCreationModel
-                                                    ?.data
-                                                    ?.masterPallets ??
-                                                [],
-                                            hintText: 'Search Pallets',
-                                          ),
-                                        );
-                                        if (palletData != null) {
-                                          scanned = false;
-                                          palletCreationController
-                                              .palletItemsList
-                                              .clear();
-                                          palletTextController.text =
-                                              palletData.name;
-                                          palletCreationController.update();
-                                        }
-                                      },
-                                      child: IgnorePointer(
-                                        child: TextFormField(
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    vertical: 0, horizontal: 8),
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                            hintText: 'Search Pallet',
-                                            hintStyle: const TextStyle(
-                                                fontWeight: FontWeight.normal),
-                                            border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10)),
-                                          ),
-                                          controller: palletTextController,
-                                          style: Get.textTheme.bodyText2
-                                              ?.copyWith(color: Colors.black),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                            SizedBox(width: 8 ),
                             Expanded(
-                              child: Center(
-                                child: MaterialButton(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  disabledColor: Colors.grey,
-                                  color: kThemeOrangeColor,
-                                  onPressed: onBarCodeScanPallet,
-                                  height: 45,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Text('Scan Pallet Code'),
-                                      SizedBox(width: 4),
-                                      Icon(Icons.qr_code_2)
-                                    ],
-                                  ),
-                                ),
+                              child: SearchHomeWidget(
+                                onTap: () async {
+                                  palletData = await Get.to(
+                                    () => SearchScreen(
+                                      data: palletCreationController
+                                              .palletCreationModel
+                                              ?.data
+                                              ?.masterPallets ??
+                                          [],
+                                      hintText: 'Search Pallets',
+                                    ),
+                                  );
+                                  if (palletData != null) {
+                                    scanned = false;
+                                    palletCreationController.palletItemsList
+                                        .clear();
+                                    palletTextController.text = palletData.name;
+                                    palletCreationController.update();
+                                  }
+                                },
+                                textController: palletTextController,
+                                label: 'Search Pallet',
                               ),
                             ),
+                            SizedBox(width: 8),
+                            Expanded(
+                                child: ScanPalletCodeButton(
+                                    onTap: onBarCodeScanPallet)),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Divider(),
-                      const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: InkWell(
+                        child: SearchHomeWidget(
+                          textController: dropLocationController,
                           onTap: () async {
                             dropLocationData = await Get.to(() => SearchScreen(
-                              data: warehouseList,
-                              hintText: 'Search Drop Location',
-                            ));
+                                  data: warehouseList,
+                                  hintText: 'Search Drop Location',
+                                ));
                             if (dropLocationData != null) {
-                              dropLocationController.text = warehouseData.name;
+                              dropLocationController.text =
+                                  dropLocationData.name;
                             }
                           },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 0, horizontal: 8),
-                                fillColor: Colors.white,
-                                filled: true,
-                                hintText: 'Search Drop Location',
-                                hintStyle: const TextStyle(
-                                    fontWeight: FontWeight.normal),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              controller: dropLocationData,
-                              style: Get.textTheme.bodyText2
-                                  ?.copyWith(color: Colors.black),
-                            ),
-                          ),
+                          label: 'Search Drop Location',
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Divider(),
-                      const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                color: kBlueColor,
-                                height: 45,
-                                onPressed: onAddButtonPress,
-                                child: const Text('Drop Pallet'),
-                              ),
-                            ),
-                          ],
+                        child: DropPalletButton(
+                          onTap: onAddButtonPress,
                         ),
                       )
                     ],
@@ -300,173 +209,20 @@ class _PickingPalletReachTruckScreenState
                 ? const Offstage()
                 : SizedBox(
                     height: Get.mediaQuery.size.height * 0.3,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        palletCreationController.palletItemsList.isNotEmpty
-                            ? Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Total Weight:',
-                                      style: Get.textTheme.bodyText2
-                                          ?.copyWith(color: Colors.white),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '$totalWeightSum kg',
-                                      style: Get.textTheme.bodyText2
-                                          ?.copyWith(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : const Offstage(),
-                        const SizedBox(height: 15),
-                        Flexible(
-                          child: ListView.separated(
-                            physics: const ScrollPhysics(),
-                            shrinkWrap: true,
-                            separatorBuilder: (context, index) {
-                              return const SizedBox(height: 10);
-                            },
-                            reverse: true,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 8),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colors.white)),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Pallet: ' +
-                                                (palletCreationController
-                                                        .palletItemsList[index]
-                                                        .palletName ??
-                                                    ''),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                color: CupertinoColors.white),
-                                          ),
-                                          Text(
-                                            'VAR: ' +
-                                                (palletCreationController
-                                                        .palletItemsList[index]
-                                                        .variantName ??
-                                                    ''),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'SKU: ${palletCreationController.palletItemsList[index].skuName ?? ''} dhjhdjsdhjshdjshdsjdhjshdsjhdsjdh',
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            'Weight: ${palletCreationController.palletItemsList[index].weight} Kg',
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      color: Colors.white,
-                                      width: 2,
-                                      height: 50,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${int.parse(palletCreationController.palletItemsList[index].weight ?? '0') / 20} C',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        InkWell(
-                                          onTap: () {
-                                            Get.to(() => EditScreen(
-                                                  index: index,
-                                                ));
-                                          },
-                                          child: Icon(
-                                            Icons.edit,
-                                            color: kBlueColor,
-                                          ),
-                                        ),
-                                        InkWell(
-                                          onTap: () {
-                                            Utility.alertBox(
-                                              titleText:
-                                                  'Are you sure you want to delete?',
-                                              successButtonText: 'Delete',
-                                              successButtonFunction: () {
-                                                setState(
-                                                  () {
-                                                    totalWeightSum -= int.parse(
-                                                        palletCreationController
-                                                                .palletItemsList[
-                                                                    index]
-                                                                .weight ??
-                                                            '0');
-                                                    palletCreationController
-                                                        .palletItemsList
-                                                        .removeAt(index);
-                                                  },
-                                                );
-                                                Get.back();
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            Icons.delete,
-                                            color: kThemeOrangeColor,
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
-                            itemCount:
-                                palletCreationController.palletItemsList.length,
-                          ),
-                        ),
-                      ],
+                    child: PalletCreationBottomWidget(
+                      onDelete: () {
+                        setState(
+                          () {
+                            totalWeightSum -= int.parse(palletCreationController
+                                    .palletItemsList[index].weight ??
+                                '0');
+                            palletCreationController.palletItemsList
+                                .removeAt(index);
+                          },
+                        );
+                        Get.back();
+                      },
+                      totalWeight: totalWeightSum.toString(),
                     ),
                   );
           }),

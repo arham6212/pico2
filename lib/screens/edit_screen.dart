@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pico2/common/common_widgets.dart';
 import 'package:pico2/controller/pallet_creation_controller.dart';
 import 'package:pico2/theme/colors.dart';
+import 'package:pico2/widgets/custom_app_bar.dart';
 
 import 'search_screen.dart';
 
 class EditScreen extends StatefulWidget {
-
   final int index;
 
   const EditScreen({
     Key? key,
-
     required this.index,
   }) : super(key: key);
 
@@ -40,7 +38,7 @@ class _EditScreenState extends State<EditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getCommonAppBar(title: 'Edit Pallet Sku'),
+      appBar: const CustomAppBar(title: 'Edit Pallet Sku'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
@@ -57,7 +55,7 @@ class _EditScreenState extends State<EditScreen> {
             const Text('SKU'),
             InkWell(
               onTap: () async {
-           skuData   = await Get.to(() => SearchScreen(
+                skuData = await Get.to(() => SearchScreen(
                       data: palletController
                               .palletCreationModel?.data?.skuCodes ??
                           [],
@@ -87,7 +85,7 @@ class _EditScreenState extends State<EditScreen> {
                       const Text('Variant'),
                       InkWell(
                         onTap: () async {
-                           variantData = await Get.to(() => SearchScreen(
+                          variantData = await Get.to(() => SearchScreen(
                                 data: palletController
                                         .palletCreationModel?.data?.variants ??
                                     [],
@@ -130,14 +128,16 @@ class _EditScreenState extends State<EditScreen> {
             Align(
               child: MaterialButton(
                 onPressed: () {
-                  palletController.palletItemsList[widget.index].weight = weightController.text;
+                  palletController.palletItemsList[widget.index].weight =
+                      weightController.text;
 
-                  if(variantData!=null) {
+                  if (variantData != null) {
                     palletController.palletItemsList[widget.index].variantId =
                         variantData.id.toString();
-                    palletController.palletItemsList[widget.index].variantName = variantData.name;
+                    palletController.palletItemsList[widget.index].variantName =
+                        variantData.name;
                   }
-                  if(skuData!=null) {
+                  if (skuData != null) {
                     palletController.palletItemsList[widget.index].skuName =
                         skuData.name;
                     palletController.palletItemsList[widget.index].skuId =

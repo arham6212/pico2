@@ -1,22 +1,23 @@
-
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pico2/common/common_widgets.dart';
 import 'package:pico2/common/events.dart';
 import 'package:pico2/controller/pallet_creation_controller.dart';
 import 'package:pico2/controller/search_controller.dart';
 import 'package:pico2/models/pallet_items_model.dart';
-import 'package:pico2/screens/edit_screen.dart';
 import 'package:pico2/screens/search_screen.dart';
 import 'package:pico2/theme/colors.dart';
 import 'package:pico2/utils/constants.dart';
-import 'package:pico2/utils/utility.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:pico2/widgets/added_pallet_item_widget.dart';
+import 'package:pico2/widgets/custom_app_bar.dart';
+import 'package:pico2/widgets/search_homw_widget.dart';
+
+import '../widgets/animated_text_field.dart';
 
 class PalletCreationScreen extends StatefulWidget {
   const PalletCreationScreen({Key? key}) : super(key: key);
@@ -25,7 +26,8 @@ class PalletCreationScreen extends StatefulWidget {
   State<PalletCreationScreen> createState() => _PalletCreationScreenState();
 }
 
-class _PalletCreationScreenState extends State<PalletCreationScreen> {
+class _PalletCreationScreenState extends State<PalletCreationScreen>
+    with SingleTickerProviderStateMixin {
   final palletCreationController = Get.put(PalletCreationController());
   final searchController = Get.put(SearchController());
 
@@ -51,10 +53,20 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
 
   late final int index;
   String updateId = '';
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
     init();
   }
 
@@ -62,6 +74,7 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
   dispose() {
     super.dispose();
     resetValues();
+    _animationController.dispose();
   }
 
   init({bool afterSave = false}) async {
@@ -80,12 +93,56 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
     dateController.text = dateFormat;
   }
 
+  bool _isPanelOpen = false;
+  late AnimationController _animationController;
+
+  void _togglePanel() {
+    setState(() {
+      _isPanelOpen = !_isPanelOpen;
+      if (_isPanelOpen) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: GetBuilder<PalletCreationController>(builder: (_) {
         return Scaffold(
-          appBar: getCommonAppBar(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              // Handle add action
+              setState(() {
+                _togglePanel();
+              });
+            },
+            tooltip: 'Add Item',
+            child: Icon(Icons.add),
+          ),
+          bottomSheet: AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            height: _isPanelOpen ? 200.0 : 0.0,
+            curve: Curves.easeInOut,
+            child: ListView.builder(
+              itemCount: palletCreationController
+                  .palletItemsList.length, // Replace with the actual item count
+              itemBuilder: (context, index) {
+                var item =
+                    palletCreationController.palletItemsList.elementAt(index);
+                return AddedPalletItemWidget(
+                    index: index,
+                    palletName: item.palletName ?? '',
+                    variantName: item.variantName ?? '',
+                    skuName: item.skuName ?? '',
+                    weight: item.weight ?? '',
+                    onSuccessfulDeletion: () {});
+              },
+            ),
+          ),
+          appBar: CustomAppBar(
             title: index == 0 ? 'Pallet Create' : 'Return Pallet',
             action: MaterialButton(
               color: kBlueColor,
@@ -112,7 +169,8 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                       const SizedBox(height: 20),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: InkWell(
+                        child: SearchHomeWidget(
+                          textController: locationController,
                           onTap: () async {
                             locationData = await Get.to(() => SearchScreen(
                                   data: palletCreationController
@@ -126,24 +184,7 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                               locationController.text = locationData.name;
                             }
                           },
-                          child: IgnorePointer(
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 0, horizontal: 8),
-                                fillColor: Colors.white,
-                                filled: true,
-                                hintText: 'Search Location',
-                                hintStyle: const TextStyle(
-                                    fontWeight: FontWeight.normal),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              controller: locationController,
-                              style: Get.textTheme.bodyText2
-                                  ?.copyWith(color: Colors.black),
-                            ),
-                          ),
+                          label: 'Search Location',
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -153,7 +194,8 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                           children: [
                             index == 0
                                 ? Expanded(
-                                    child: InkWell(
+                                    child: SearchHomeWidget(
+                                      textController: palletTextController,
                                       onTap: () async {
                                         palletData = await Get.to(
                                           () => SearchScreen(
@@ -175,26 +217,7 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                                           palletCreationController.update();
                                         }
                                       },
-                                      child: IgnorePointer(
-                                        child: TextFormField(
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    vertical: 0, horizontal: 8),
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                            hintText: 'Search Pallet',
-                                            hintStyle: const TextStyle(
-                                                fontWeight: FontWeight.normal),
-                                            border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10)),
-                                          ),
-                                          controller: palletTextController,
-                                          style: Get.textTheme.bodyText2
-                                              ?.copyWith(color: Colors.black),
-                                        ),
-                                      ),
+                                      label: 'Search Pallet',
                                     ),
                                   )
                                 : const Offstage(),
@@ -206,8 +229,8 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                                       borderRadius: BorderRadius.circular(10)),
                                   disabledColor: Colors.grey,
                                   color: kThemeOrangeColor,
-                                  onPressed: onBarCodeScanPallet,
-                                  height: 45,
+                                  onPressed: () {},
+                                  height: 50,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
@@ -223,15 +246,14 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Divider(),
-                      const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             Expanded(
-                              child: InkWell(
+                              child: SearchHomeWidget(
+                                textController: skuController,
                                 onTap: () async {
                                   skuData = await Get.to(() => SearchScreen(
                                         data: palletCreationController
@@ -245,26 +267,7 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                                     skuController.text = skuData?.name ?? '';
                                   }
                                 },
-                                child: IgnorePointer(
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical: 0, horizontal: 8),
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      hintText: 'Search SKU',
-                                      hintStyle: const TextStyle(
-                                          fontWeight: FontWeight.normal),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                    ),
-                                    controller: skuController,
-                                    style: Get.textTheme.bodyText2
-                                        ?.copyWith(color: Colors.black),
-                                  ),
-                                ),
+                                label: 'Search SKU',
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -330,7 +333,7 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             Expanded(
-                              child: InkWell(
+                              child: SearchHomeWidget(
                                 onTap: () async {
                                   variantData = await Get.to(() => SearchScreen(
                                         data: palletCreationController
@@ -345,56 +348,54 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                                         variantData?.name ?? "";
                                   }
                                 },
-                                child: IgnorePointer(
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical: 0, horizontal: 8),
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      hintText: 'Search Variant',
-                                      hintStyle: const TextStyle(
-                                          fontWeight: FontWeight.normal),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                    ),
-                                    controller: variantController,
-                                    style: Get.textTheme.bodyText2
-                                        ?.copyWith(color: Colors.black),
-                                  ),
-                                ),
+                                textController: variantController,
+                                label: 'Search Variant',
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: TextFormField(
-                                style: Get.textTheme.bodyText2
-                                    ?.copyWith(color: kBlackColor),
-                                controller: weightController,
+                              child: AnimatedTextField(
+                                textController: weightController,
+                                onTap: () {},
                                 inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
+                                  LengthLimitingTextInputFormatter(3),
+                                  FilteringTextInputFormatter.digitsOnly,
                                 ],
-                                decoration: InputDecoration(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    fillColor: Colors.white,
-                                    hintText: 'Enter Weight',
-                                    filled: true,
-                                    counterText: ''),
-                                maxLength: 3,
-                                keyboardType: TextInputType.number,
+                                label: 'Enter Weight',
                               ),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Divider(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Request Warehouse',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                CupertinoSwitch(
+                                  // trackColor: kBlueColor,
+                                  activeColor: kThemeOrangeColor,
+                                  value: palletCreationController
+                                      .requestedWarehouse,
+                                  onChanged: (value) => palletCreationController
+                                      .toggleWarehouseRequest(),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -411,188 +412,12 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Expanded(
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                color: Colors.grey,
-                                height: 45,
-                                onPressed: () {},
-                                // onPressed: onAddButtonPress,
-                                child: const Text('Request Warehouse'),
-                              ),
-                            ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
-          bottomSheet:
-              KeyboardVisibilityBuilder(builder: (context, isKeyBoardVisible) {
-            return isKeyBoardVisible
-                ? const Offstage()
-                : SizedBox(
-                    height: Get.mediaQuery.size.height * 0.3,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        palletCreationController.palletItemsList.isNotEmpty
-                            ? Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-
-                                    Text(
-                                      '$totalWeightSum kg/ 5 $totalCratesSum',
-                                      style: Get.textTheme.bodyText2
-                                          ?.copyWith(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : const Offstage(),
-                        const SizedBox(height: 15),
-                        Flexible(
-                          child: ListView.separated(
-                            physics: const ScrollPhysics(),
-                            shrinkWrap: true,
-                            separatorBuilder: (context, index) {
-                              return const SizedBox(height: 10);
-                            },
-                            reverse: true,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 8),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colors.white)),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Pallet: ' +
-                                                (palletCreationController
-                                                        .palletItemsList[index]
-                                                        .palletName ??
-                                                    ''),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                color: CupertinoColors.white),
-                                          ),
-                                          Text(
-                                            'VAR: ' +
-                                                (palletCreationController
-                                                        .palletItemsList[index]
-                                                        .variantName ??
-                                                    ''),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'SKU: ${palletCreationController.palletItemsList[index].skuName ?? ''} dhjhdjsdhjshdjshdsjdhjshdsjhdsjdh',
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            'Weight: ${palletCreationController.palletItemsList[index].weight} Kg',
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      color: Colors.white,
-                                      width: 2,
-                                      height: 50,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${int.parse(palletCreationController.palletItemsList[index].weight ?? '0') / 20} C',
-                                          maxLines: 1,overflow: TextOverflow.ellipsis,),
-
-                                       InkWell(
-                                                onTap: () {
-                                                  Get.to(() => EditScreen(
-                                                        index: index,
-                                                      ));
-                                                },
-                                                child: Icon(
-                                                  Icons.edit,
-                                                  color: kBlueColor,
-                                                ),
-                                              ),
-                                         InkWell(
-                                          onTap: () {
-                                            Utility.alertBox(
-                                              titleText:
-                                                  'Are you sure you want to delete?',
-                                              successButtonText: 'Delete',
-                                              successButtonFunction: () {
-                                                setState(
-                                                  () {
-                                                    totalWeightSum -= int.parse(palletCreationController.palletItemsList[index].weight??'0');
-                                                    palletCreationController
-                                                        .palletItemsList
-                                                        .removeAt(index);
-                                                  },
-                                                );
-                                                Get.back();
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            Icons.delete,
-                                            color: kThemeOrangeColor,
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
-                            itemCount:
-                                palletCreationController.palletItemsList.length,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-          }),
         );
       }),
     );
@@ -627,22 +452,23 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
       });
     }
     Map<String, dynamic> finalBody = {
-      'master_pallet_id':palletCreationController.palletDetailModel?.data!=null
-          ? palletCreationController.palletDetailModel?.data?.masterPalletId
-          : palletData.id,
+      'master_pallet_id':
+          palletCreationController.palletDetailModel?.data != null
+              ? palletCreationController.palletDetailModel?.data?.masterPalletId
+              : palletData.id,
       'location_id': locationData.id,
       'pallet_details': palletCreationIdList,
       'created_by': Constants.user.id.toString()
     };
     var store = await palletCreationController.storePalletCreation(
-        palletDetails: finalBody, update: palletCreationController.palletDetailModel?.data!=null,
+      palletDetails: finalBody,
+      update: palletCreationController.palletDetailModel?.data != null,
       id: palletCreationController.palletDetailModel?.data?.id.toString(),
     );
     if (store) {
       createToast('Successfully saved');
       init(afterSave: true);
-    } else {
-    }
+    } else {}
   }
 
   resetValues() {
@@ -687,15 +513,16 @@ class _PalletCreationScreenState extends State<PalletCreationScreen> {
     }
 
     /// todo: uncomment on production
-    if (!scanned) {
-      createToast('Please scan bar code ', error: true);
-      return;
-    }
+    // if (!scanned) {
+    //   createToast('Please scan bar code ', error: true);
+    //   return;
+    // }
     palletCreationController.palletItemsList.add(
       PalletItemsModel(
-        palletId:  palletCreationController.palletDetailModel?.data?.masterPalletId
-                .toString(),
-        palletName: palletCreationController.palletDetailModel?.data==null
+        palletId: palletCreationController
+            .palletDetailModel?.data?.masterPalletId
+            .toString(),
+        palletName: palletCreationController.palletDetailModel?.data == null
             ? palletData.name
             : palletCreationController
                 .palletDetailModel?.data?.masterPallet?.name,

@@ -8,5 +8,7 @@ routeDecider(String role) {
     Get.offNamed(RouteList.reachTruckDashboard);
   } else if (role == ProfileRoles.palletCreationRole) {
     Get.offNamed(RouteList.pcmHome);
+  } else {
+    Get.offNamed(RouteList.notEligible);
   }
 }

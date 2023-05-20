@@ -1,98 +1,69 @@
-import 'package:pico2/common/common_widgets.dart';
-import 'package:pico2/common/route_list.dart';
-import 'package:pico2/utils/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../theme/colors.dart';
+import '../common/route_list.dart';
+import '../models/pallet_scren_model.dart';
+import '../widgets/animated_logout_button.dart';
+import '../widgets/custom_app_bar.dart';
+import '../widgets/pallet_card.dart';
 
-class PcmHomeDashboardScreen extends StatefulWidget {
+class PcmHomeDashboardScreen extends StatelessWidget {
   const PcmHomeDashboardScreen({Key? key}) : super(key: key);
-
-  @override
-  State<PcmHomeDashboardScreen> createState() => _PcmHomeDashboardScreenState();
-}
-
-class _PcmHomeDashboardScreenState extends State<PcmHomeDashboardScreen> {
-  List palletScreen = [
-
-    {
-      'crateName': 'Create Pallet',
-      'color': kThemeOrangeColor,
-    },
-    {
-      'crateName': 'Return Pallet',
-      'color': kPinkColor,
-    },
-  ];
-
-
-  init() async {
-    // await crateControllers.getLocations();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: getCommonAppBar(title: 'Pallet Creation/Management'),
-      body: Column(
-        children: [
-          const SizedBox(height: 25),
-          Expanded(
-            child: Center(
-              child: ListView.separated(
-                  separatorBuilder: (context, index) =>const SizedBox(height: 25),
-                  itemCount: palletScreen.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return InkWell(
+      appBar: const CustomAppBar(title: 'Pallet Creation/Management'),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: PalletCard(
+                      palletScreen: PalletScreen.palletScreens[0],
                       onTap: () {
-                        Get.toNamed(
-                            RouteList.palletCreation , arguments: {'index':index});
+                        _navigateToPalletCreation(context, index: 0);
                       },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: palletScreen[index]['color'],
-                        ),
-                        margin: const EdgeInsets.symmetric(horizontal: 15),
-                        height: Get.mediaQuery.size.height * 0.1,
-                        child: Center(
-                            child: Text(
-                          palletScreen[index]['crateName'],
-                          style: Get.textTheme.headline5,
-                        )),
-                      ),
-                    );
-                  }),
-            ),
-          ),
-          const SizedBox(height: 20),
-          MaterialButton(
-            color: Colors.red,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            onPressed: () async {
-              await LocalStorage().clearStorage();
-              Get.offNamed(RouteList.login);
-            },
-            child: const Text('LogOut'),
-          ),
-          SizedBox(
-            height: 25,
-            child: Center(
-              child: Text(
-                'copyright@EXG Logistics',
-                style: Get.textTheme.bodyText2,
+                    ),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: PalletCard(
+                      palletScreen: PalletScreen.palletScreens[1],
+                      onTap: () {
+                        _navigateToPalletCreation(context, index: 1);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          )
-        ],
+            const SizedBox(height: 20),
+            AnimatedLogoutButton(),
+            const SizedBox(height: 25),
+            const Text(
+              '© EXG Logistics',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _navigateToPalletCreation(BuildContext context, {required int index}) {
+    Get.toNamed(
+      RouteList.palletCreation,
+      arguments: {'index': index},
     );
   }
 }

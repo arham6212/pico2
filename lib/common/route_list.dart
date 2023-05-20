@@ -2,6 +2,7 @@
 class RouteList {
   //Splash
   static const String splashScreen = '/splash';
+  static const String notEligible = '/notEligible';
   static const String searchScreen = '/searchScreen';
   static const String editScreen = '/editScreen';
 
@@ -10,9 +11,8 @@ class RouteList {
 
   // Home
   static const String pcmHome = '/pcmHome';
-  static const String reachTruckDashboard   = '/reachTruckDashboard';
+  static const String reachTruckDashboard = '/reachTruckDashboard';
 
   static const String palletCreation = '/palletCreation';
   static const String pickingPalletScreen = '/pickingPalletScreen';
-
 }

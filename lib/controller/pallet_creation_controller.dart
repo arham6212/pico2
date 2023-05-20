@@ -11,8 +11,13 @@ import '../utils/tools.dart';
 
 class PalletCreationController extends GetxController {
   PalletsCreate? palletCreationModel;
-  PalletDetailModel ?palletDetailModel;
+  PalletDetailModel? palletDetailModel;
   List<PalletItemsModel> palletItemsList = [];
+  bool requestedWarehouse = false;
+  toggleWarehouseRequest() {
+    requestedWarehouse = !requestedWarehouse;
+    update();
+  }
 
   getPalletCreate({bool toUpdate = true}) async {
     try {
@@ -25,20 +30,18 @@ class PalletCreationController extends GetxController {
     } catch (e, s) {
       printLog(e);
       printLog(s);
-    }
-    finally{
-      if(toUpdate)update();
+    } finally {
+      if (toUpdate) update();
     }
   }
 
-  bool isScannedPalletsFromList(String pallet, {bool returnP =false}) {
+  bool isScannedPalletsFromList(String pallet, {bool returnP = false}) {
     var data = palletCreationModel?.data?.masterPallets
         ?.where((palletData) => (palletData.name == pallet));
-    return returnP? true:((data?.length ?? 0) >= 1);
+    return returnP ? true : ((data?.length ?? 0) >= 1);
   }
 
-   getPalletDetails(
-      {required String palletName}) async {
+  getPalletDetails({required String palletName}) async {
     try {
       eventBus.fire(const EventShowLoading());
       var response = await Request.send(
@@ -70,29 +73,33 @@ class PalletCreationController extends GetxController {
       return false;
     }
   }
-  storePalletCreation({required Map<String, dynamic> palletDetails, required bool update, String ?id }) async {
+
+  storePalletCreation(
+      {required Map<String, dynamic> palletDetails,
+      required bool update,
+      String? id}) async {
     try {
       eventBus.fire(const EventShowLoading());
-      var response = await Request.send(update?EndPoints.updatePalletsCreation+(id??''):EndPoints.storePalletsCreation,
-          connectionType: update?ConnectionType.put: ConnectionType.post,
-          body:palletDetails);
+      var response = await Request.send(
+          update
+              ? EndPoints.updatePalletsCreation + (id ?? '')
+              : EndPoints.storePalletsCreation,
+          connectionType: update ? ConnectionType.put : ConnectionType.post,
+          body: palletDetails);
       if (response is String) {
         Get.back();
         createToast(response, error: true);
         return false;
-      }
-      else if(response is Map && response.containsKey('data')){
+      } else if (response is Map && response.containsKey('data')) {
         Get.back();
-        return true ;
-      }
-      else if(response is Map && response.containsKey('error')){
+        return true;
+      } else if (response is Map && response.containsKey('error')) {
         Get.back();
-        createToast(response['error'],error: true);
+        createToast(response['error'], error: true);
         return false;
-      }
-      else{
+      } else {
         Get.back();
-        return false ;
+        return false;
       }
     } catch (e, s) {
       Get.back();
