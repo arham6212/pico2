@@ -13,6 +13,5 @@ class RouteList {
   static const String pcmHome = '/pcmHome';
   static const String reachTruckDashboard = '/reachTruckDashboard';
 
-  static const String palletCreation = '/palletCreation';
   static const String pickingPalletScreen = '/pickingPalletScreen';
 }

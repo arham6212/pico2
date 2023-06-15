@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pico2/screens/pallet_creation_screen.dart';
 
-import '../common/route_list.dart';
 import '../models/pallet_scren_model.dart';
 import '../widgets/animated_logout_button.dart';
 import '../widgets/custom_app_bar.dart';
@@ -13,7 +13,10 @@ class PcmHomeDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Pallet Creation/Management'),
+      appBar: const CustomAppBar(
+        title: 'Pallet Creation/Management',
+        showAction: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 25),
         child: Column(
@@ -61,9 +64,10 @@ class PcmHomeDashboardScreen extends StatelessWidget {
   }
 
   void _navigateToPalletCreation(BuildContext context, {required int index}) {
-    Get.toNamed(
-      RouteList.palletCreation,
-      arguments: {'index': index},
+    Get.to(
+      PalletCreationScreen(
+        index: index,
+      ),
     );
   }
 }

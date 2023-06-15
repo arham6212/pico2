@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pico2/screens/login_screen.dart';
 import 'package:pico2/screens/not_eligible_screen.dart';
-import 'package:pico2/screens/pallet_creation_screen.dart';
 import 'package:pico2/screens/picking_pallet_reach-truck_screen.dart';
 import 'package:pico2/screens/reach_truck_dashboard.dart';
 import 'package:pico2/screens/splash_screen.dart';
@@ -72,9 +71,6 @@ class _MyAppState extends State<MyApp> {
           GetPage(
               name: RouteList.pcmHome,
               page: () => const PcmHomeDashboardScreen()),
-          GetPage(
-              name: RouteList.palletCreation,
-              page: () => const PalletCreationScreen()),
           GetPage(
               name: RouteList.reachTruckDashboard,
               page: () => ReachTruckDashboard()),

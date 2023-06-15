@@ -24,10 +24,10 @@ class AddedPalletItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -43,7 +43,7 @@ class AddedPalletItemWidget extends StatelessWidget {
             MaterialPageRoute(builder: (context) => EditScreen(index: index)),
           );
         },
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: const EdgeInsets.all(8),
         leading: Container(
           width: 60,
           height: 60,
@@ -52,48 +52,51 @@ class AddedPalletItemWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
-          child: const Text(
-            'P',
-            style: TextStyle(
+          child: Text(
+            palletName,
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 24,
             ),
           ),
         ),
-        title: Text(
-          palletName,
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'SKU: $skuName',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 16,
-              ),
-              maxLines: 1,
+              style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
-            Text(
-              variantName,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 16,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            // const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  "Variant: ",
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  variantName,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
+            // const SizedBox(height: 4),
             Row(
               children: [
                 Text(
@@ -105,10 +108,10 @@ class AddedPalletItemWidget extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  weight,
-                  style: TextStyle(
+                  "$weight kg",
+                  style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 16),

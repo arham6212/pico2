@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pico2/utils/tools.dart';
 
 const kEmptyColor = Color(0x0D000000);
 Color kListFont = const Color(0xFF8E8E8E);
@@ -6,7 +7,7 @@ Color kPrimaryColor = const Color(0xFF000000);
 Color kSecondaryColor =
     Colors.grey; // Change to a different color of your choice
 Color kThemeOrangeColor = const Color(0xFFC84B31);
-Color kBlueColor = const Color(0xFF2D4263);
+Color kBlueColor = HexColor('#008080');
 Color kBlackColor = const Color(0xFF191919);
 Color kPinkColor = const Color(0xFFECDBBA);
 

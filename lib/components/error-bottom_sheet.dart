@@ -7,7 +7,7 @@ void errorModalBottomSheet(String message,
   Get.bottomSheet(
     Container(
       height: height,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -19,19 +19,19 @@ void errorModalBottomSheet(String message,
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               color: Colors.red,
               size: 64,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 message,
                 textAlign: TextAlign.center,
                 style: style ??
-                    TextStyle(
+                    const TextStyle(
                       fontSize: 18,
                       height: 1.5,
                       color: Colors.black,
@@ -39,7 +39,7 @@ void errorModalBottomSheet(String message,
                     ),
               ),
             ),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
             SizedBox(
               width: Get.mediaQuery.size.width * 0.6,
               child: ElevatedButton(
@@ -52,9 +52,9 @@ void errorModalBottomSheet(String message,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(
+                child: const Text(
                   'Got it',
                   style: TextStyle(
                       fontSize: 16,
@@ -63,7 +63,7 @@ void errorModalBottomSheet(String message,
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
         ),
       ),

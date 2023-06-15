@@ -22,7 +22,7 @@ class _EditScreenState extends State<EditScreen> {
   TextEditingController skuController = TextEditingController(),
       weightController = TextEditingController(),
       variantController = TextEditingController();
-  final PalletCreationController palletController = Get.find();
+  final palletController = Get.put(PalletCreationController());
   var skuData, variantData;
   @override
   void initState() {
